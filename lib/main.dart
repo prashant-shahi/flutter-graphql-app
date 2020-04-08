@@ -70,18 +70,30 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  int _counter = -1;
+  String _idx = "";
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
+//    void _setCounter(counter) {
+//    setState(() {
+//      // This call to setState tells the Flutter framework that something has
+//      // changed in this State, which causes it to rerun the build method below
+//      // so that the display can reflect the updated values. If we changed
+//      // _counter without calling setState(), then the build method would not be
+//      // called again, and so nothing would appear to happen.
+//      _counter = ++counter;
+//    });
+//  }
+
+//  void _incrementCounter() {
+//    setState(() {
+//      // This call to setState tells the Flutter framework that something has
+//      // changed in this State, which causes it to rerun the build method below
+//      // so that the display can reflect the updated values. If we changed
+//      // _counter without calling setState(), then the build method would not be
+//      // called again, and so nothing would appear to happen.
+//      _counter++;
+//    });
+//  }
 
   @override
   Widget build(BuildContext context) {
@@ -120,10 +132,6 @@ class _MyHomePageState extends State<MyHomePage> {
             Text(
               'Click Counter:',
             ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.display1,
-            ),
             Query(
                 options: QueryOptions(document: fetchQuery(), pollInterval: 1,),
                 builder: (QueryResult result, { VoidCallback refetch, FetchMore fetchMore }) {
@@ -134,23 +142,63 @@ class _MyHomePageState extends State<MyHomePage> {
                     return Text('Loading');
                   }
                   // it can be either Map or List
-                  print('result: ${result.data}');
-                  final counters = result.data['getCounter'];
-                  print('counters: $counters');
-
+                  if (result.data == null) {
+                    Mutation(
+                      options: MutationOptions(
+                        document: addCounterMutation(), // this is the mutation string you just created
+                      ),
+                      builder: (
+                        RunMutation runMutation,
+                        QueryResult result,
+                      ) {
+                        if (result.hasErrors) {
+                          print("Mutation Error: ${result.errors.toString()}");
+                        } else if (result.data != null) {
+                          final data = result.data["addCounter"];
+                          _idx = data["counter"][0]["id"];
+                          _counter = data["counter"][0]["counter"];
+                        }
+                      }
+                    );
+                  } else {
+                    final counters = result.data['getCounter'];
+                    print('counters: $counters');
+                    _counter = counters['counter'];
+                  }
                   return Text(
-                    counters['counter'].toString(),
+                    _counter.toString(),
                     style: Theme.of(context).textTheme.display1,);
                 },
               ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      floatingActionButton:   Mutation(
+          options: MutationOptions(
+            document: incrementCounterMutation(), // this is the mutation string you just created
+          ),
+          builder: (
+            RunMutation runMutation,
+            QueryResult result,
+            ) {
+              if (result.hasErrors) {
+                print("Mutation Error: ${result.errors.toString()}");
+              } else if (result.data != null) {
+                final data = result.data["updateCounter"];
+                if (data["numUids"] == 1) {
+                  _counter = data["counter"][0]["counter"];
+                }
+              }
+              return FloatingActionButton(
+                onPressed: () => runMutation({
+                  'id': _idx,
+                  'counter': _counter+1,
+                }),
+                tooltip: 'Increment',
+                child: Icon(Icons.add),
+              );
+            },
+          ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }

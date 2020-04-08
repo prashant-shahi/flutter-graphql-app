@@ -1,18 +1,23 @@
-String incrementCounterMutation(id, counter) {
-  return ("""mutation updateCounter{
-              updateCounter(
-                filter: { id: ["$id"] },
-                set: { counter: "${counter+1})" }
-               ) {
+String incrementCounterMutation() {
+  return ("""mutation updateCounter(\$id: ID!, \$counter: Int){
+              updateCounter(input: {
+                filter: {
+                  id: [\$id]
+                },
+                set: {
+                  counter: \$counter
+                }
+              }) {
                 counter{
                   id
-                  counter
+                  counter 
                 }
+                numUids
               }
             }""");
 }
 
-String addCounterMutation(task) {
+String addCounterMutation() {
   return ("""mutation AddCounter{
               addCounter(input: {counter: 0) {
                 counter {
