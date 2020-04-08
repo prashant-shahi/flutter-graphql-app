@@ -29,8 +29,8 @@ String addCounterMutation() {
 }
 
 String fetchQuery() {
-  return ("""query getCounter {
-               getCounter(id: "0x2") {
+  return ("""query getCounter(\$id: ID!){
+               getCounter(id: \$id) {
                   id
                   counter
                }

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:graphql_flutter/graphql_flutter.dart';
@@ -70,8 +72,18 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = -1;
-  String _idx = "";
+  int _counter = 0;
+
+  // For now, you will need to run the Mutation below before starting the app.
+    //  mutation {
+    //    addCounter(input: [{ counter: 1 }]) {
+    //      counter {
+    //        id
+    //        counter
+    //      }
+    //    }
+    //  }
+  String _idx = "0x2";
 
 //    void _setCounter(counter) {
 //    setState(() {
@@ -133,38 +145,52 @@ class _MyHomePageState extends State<MyHomePage> {
               'Click Counter:',
             ),
             Query(
-                options: QueryOptions(document: fetchQuery(), pollInterval: 1,),
+                options: QueryOptions(
+                  document: fetchQuery(),
+                  variables: {
+                    'id': _idx
+                  },
+                  pollInterval: 1,
+                ),
                 builder: (QueryResult result, { VoidCallback refetch, FetchMore fetchMore }) {
                   if (result.errors != null) {
                     return Text(result.errors.toString());
-                  }
-                  if (result.loading) {
+                  } else if (result.loading) {
                     return Text('Loading');
                   }
                   // it can be either Map or List
                   if (result.data == null) {
-                    Mutation(
-                      options: MutationOptions(
-                        document: addCounterMutation(), // this is the mutation string you just created
-                      ),
-                      builder: (
-                        RunMutation runMutation,
-                        QueryResult result,
-                      ) {
-                        if (result.hasErrors) {
-                          print("Mutation Error: ${result.errors.toString()}");
-                        } else if (result.data != null) {
-                          final data = result.data["addCounter"];
-                          _idx = data["counter"][0]["id"];
-                          _counter = data["counter"][0]["counter"];
-                        }
-                      }
+//                    Mutation(
+//                      options: MutationOptions(
+//                        document: addCounterMutation(), // this is the mutation string you just created
+//                      ),
+//                      builder: (
+//                        RunMutation runMutation,
+//                        QueryResult result,
+//                      ) {
+//                        if (result.hasErrors) {
+//                          print("Mutation Error: ${result.errors.toString()}");
+//                        } else if (result.data != null) {
+//                          final data = result.data["updateCounter"];
+//                          if (data["numUids"] == 1) {
+//                            _idx = data["counter"][0]["id"];
+//                            _counter = data["counter"][0]["counter"];
+//                          }
+//                        }
+//                      }
+//                    );
+                    _counter = 0;
+                    return Text(
+                      '0',
+                      style: Theme.of(context).textTheme.display1,
                     );
-                  } else {
-                    final counters = result.data['getCounter'];
-                    print('counters: $counters');
+                  }
+                  final counters = result.data['getCounter'];
+                  print('counters: $counters');
+                  if (counters != null) {
                     _counter = counters['counter'];
                   }
+
                   return Text(
                     _counter.toString(),
                     style: Theme.of(context).textTheme.display1,);
@@ -185,7 +211,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 print("Mutation Error: ${result.errors.toString()}");
               } else if (result.data != null) {
                 final data = result.data["updateCounter"];
-                if (data["numUids"] == 1) {
+                if (data["numUids"] == 1 && data["counter"] != null) {
                   _counter = data["counter"][0]["counter"];
                 }
               }
