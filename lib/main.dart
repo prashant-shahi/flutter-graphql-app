@@ -6,8 +6,15 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 import 'graphQLdata.dart';
 
 class GraphQlObject {
+  // if you are running Dgraph in your local machine, ensure that:
+  //  - your machine and your phone are on same network
+  //  - the DGRAPH_ADDRESS below is set to the IP address of your machine
+  //  - you can get the addresss using `ifconfig` for linux/mac and `ipconfig` for windows
+  //  - alternatively, going to network options
+
+  static String DGRAPH_ADDRESS = '192.168.0.101';
   static HttpLink httpLink = HttpLink(
-    uri: 'http://192.168.0.101:8080/graphql',
+    uri: 'http://$DGRAPH_ADDRESS:8080/graphql',
   );
   static AuthLink authLink = AuthLink();
   static Link link = httpLink as Link;
@@ -75,14 +82,14 @@ class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
 
   // For now, you will need to run the Mutation below before starting the app.
-    //  mutation {
-    //    addCounter(input: [{ counter: 1 }]) {
-    //      counter {
-    //        id
-    //        counter
-    //      }
-    //    }
-    //  }
+  //  mutation {
+  //    addCounter(input: [{ counter: 1 }]) {
+  //      counter {
+  //        id
+  //        counter
+  //      }
+  //    }
+  //  }
   String _idx = "0x2";
 
 //    void _setCounter(counter) {
